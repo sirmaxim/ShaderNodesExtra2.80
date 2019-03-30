@@ -1,23 +1,23 @@
 import bpy
 
 class ShaderNodeBase(bpy.types.ShaderNodeCustomGroup):
-      
+
     def __path_resolve__(self, obj, path):
         if "." in path:
             extrapath, path= path.rsplit(".", 1)
             obj = obj.path_resolve(extrapath)
         return obj, path
-            
-    def value_get(self, obj, path):         
+
+    def value_get(self, obj, path):
         obj, path=self.__path_resolve__(obj, path)
-        return getattr(obj, path)                
-    
+        return getattr(obj, path)
+
     def value_set(self, obj, path, val):
         obj, path=self.__path_resolve__(obj, path)
-        setattr(obj, path, val)                
-    
+        setattr(obj, path, val)
+
     def setupTree(self, unique=False):
-        name=self.bl_name + '_nodetree'
+        name='.' + self.bl_name + '_nodetree'
         if unique or bpy.data.node_groups.find(name)==-1:
             self.node_tree=bpy.data.node_groups.new(name + '_nodetree', 'ShaderNodeTree')
             self.addNode('NodeGroupInput', {'name':'Group Input'})
@@ -28,7 +28,7 @@ class ShaderNodeBase(bpy.types.ShaderNodeCustomGroup):
                 self.defaultNodeTree()
             elif hasattr(self, 'defaultNodeScript'):
                 import ShadeNodeScript
-                ShaderNodeScript.compile(self, name)    
+                ShaderNodeScript.compile(self, name)
             else:
                 print('No default NodeTree found')
         else:
@@ -41,12 +41,12 @@ class ShaderNodeBase(bpy.types.ShaderNodeCustomGroup):
         for attr in attrs:
             self.value_set(node, attr, attrs[attr])
         return node
-        
+
     def delNode(self, node):
         if isinstance(node, str):
             node=self.node_tree.path_resolve(node)
         self.node_tree.nodes.remove(node)
-    
+
     def addLink(self, socketFrom, socketTo):
         if isinstance(socketFrom, str):
             if socketFrom.startswith('inputs'):
@@ -63,7 +63,7 @@ class ShaderNodeBase(bpy.types.ShaderNodeCustomGroup):
         else:
             socketTo=link[1]
         self.node_tree.links.new(socketFrom, socketTo)
-    
+
     def delLink(self, link):
         if isinstance(link, str):
             link=self.node_tree.path_resolve(link)
@@ -79,12 +79,12 @@ class ShaderNodeBase(bpy.types.ShaderNodeCustomGroup):
             else:
                 self.value_set(socketInterface, attr, attrs[attr])
         return socket
-        
+
     def delInput(self, socket):
         if isinstance(socket, str):
             socket=self.node_tree.path_resolve(socket)
         self.node_tree.inputs.remove(socket)
-    
+
     def addOutput(self, sockettype, attrs):
         name = attrs.pop('name')
         socketInterface=self.node_tree.outputs.new(sockettype, name)
@@ -95,22 +95,22 @@ class ShaderNodeBase(bpy.types.ShaderNodeCustomGroup):
             else:
                 self.value_set(socketInterface, attr, attrs[attr])
         return socket
-        
+
     def delOutput(self, socket):
         if isinstance(socket, str):
             socket=self.node_tree.path_resolve(socket)
         self.node_tree.outputs.remove(socket)
-    
+
 class ShaderNodeCompact(bpy.types.ShaderNodeCustomGroup):
     def __path_resolve__(self, obj, path):
         if "." in path:
             extrapath, path= path.rsplit(".", 1)
             obj = obj.path_resolve(extrapath)
         return obj, path
-            
+
     def value_set(self, obj, path, val):
         obj, path=self.__path_resolve__(obj, path)
-        setattr(obj, path, val)                
+        setattr(obj, path, val)
 
     def addNodes(self, nodes):
         for nodeitem in nodes:
@@ -146,7 +146,7 @@ class ShaderNodeCompact(bpy.types.ShaderNodeCustomGroup):
                     self.value_set(socket, attr, inputitem[1][attr])
                 else:
                     self.value_set(socketInterface, attr, inputitem[1][attr])
-            
+
     def addOutputs(self, outputs):
         for outputitem in outputs:
             name = outputitem[1].pop('name')
@@ -156,7 +156,4 @@ class ShaderNodeCompact(bpy.types.ShaderNodeCustomGroup):
                 if attr in ['default_value', 'hide', 'hide_value', 'enabled']:
                     self.value_set(socket, attr, outputitem[1][attr])
                 else:
-                    self.value_set(socketInterface, attr, outputitem[1][attr])      
-
-
-    
+                    self.value_set(socketInterface, attr, outputitem[1][attr])
